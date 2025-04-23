@@ -1,26 +1,31 @@
-﻿using System;
-using System.Configuration;
-using Oracle.ManagedDataAccess.Client;
+﻿using Oracle.ManagedDataAccess.Client;
 
 namespace OracleUserManagementApp.Utils
 {
     public static class ConnectionHelper
     {
+        private static string _username;
+        private static string _password;
+        private static bool _isSysDba;
+        private static string _connectionType; // SERVICE hoặc SID
+        private static string _serviceOrSidValue;
+
+        public static void SetCredentials(string username, string password, bool isSysDba, string connectionType, string serviceOrSidValue)
+        {
+            _username = username;
+            _password = password;
+            _isSysDba = isSysDba;
+            _connectionType = connectionType;
+            _serviceOrSidValue = serviceOrSidValue;
+        }
+
         public static OracleConnection GetConnection()
         {
-            try
-            {
-                var connectionString = ConfigurationManager.ConnectionStrings["OracleConnection"]?.ConnectionString;
-                if (string.IsNullOrEmpty(connectionString))
-                {
-                    throw new ConfigurationErrorsException("Connection string 'OracleConnection' not found in App.config.");
-                }
-                return new OracleConnection(connectionString);
-            }
-            catch (ConfigurationErrorsException ex)
-            {
-                throw new Exception("Failed to load connection string from App.config.", ex);
-            }
+            string connectDataKey = _connectionType == "SERVICE" ? "SERVICE_NAME" : "SID";
+            string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=DESKTOP-SOM2N3B.mshome.net)(PORT=1521))(CONNECT_DATA=({connectDataKey}={_serviceOrSidValue})));User Id={_username};Password={_password};";
+            if (_isSysDba)
+                connectionString += "DBA Privilege=SYSDBA;";
+            return new OracleConnection(connectionString);
         }
     }
 }

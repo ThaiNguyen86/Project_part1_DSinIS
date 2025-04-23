@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OracleUserManagementApp.Forms;
+using System;
 using System.Windows.Forms;
 
 namespace OracleUserManagementApp
@@ -10,7 +11,25 @@ namespace OracleUserManagementApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Forms.MainForm());
+
+            using (var loginForm = new LoginForm())
+            {
+                if (loginForm.ShowDialog() == DialogResult.OK)
+                {
+                    Utils.ConnectionHelper.SetCredentials(
+                        loginForm.Username,
+                        loginForm.Password,
+                        loginForm.IsSysDba,
+                        loginForm.ConnectionType,
+                        loginForm.ServiceOrSidValue
+                    );
+                    Application.Run(new MainForm());
+                }
+                else
+                {
+                    return;
+                }
+            }
         }
     }
 }
