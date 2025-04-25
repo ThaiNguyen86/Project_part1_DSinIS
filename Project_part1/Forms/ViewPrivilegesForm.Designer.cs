@@ -16,8 +16,9 @@
         private void InitializeComponent()
         {
             this.cmbGrantee = new System.Windows.Forms.ComboBox();
-            this.lstPrivileges = new System.Windows.Forms.ListBox();
+            this.dgvPrivileges = new System.Windows.Forms.DataGridView();
             this.label1 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvPrivileges)).BeginInit();
             this.SuspendLayout();
             // 
             // cmbGrantee
@@ -29,13 +30,17 @@
             this.cmbGrantee.TabIndex = 0;
             this.cmbGrantee.SelectedIndexChanged += new System.EventHandler(this.cmbGrantee_SelectedIndexChanged);
             // 
-            // lstPrivileges
+            // dgvPrivileges
             // 
-            this.lstPrivileges.FormattingEnabled = true;
-            this.lstPrivileges.Location = new System.Drawing.Point(50, 100);
-            this.lstPrivileges.Name = "lstPrivileges";
-            this.lstPrivileges.Size = new System.Drawing.Size(300, 200);
-            this.lstPrivileges.TabIndex = 1;
+            this.dgvPrivileges.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvPrivileges.Location = new System.Drawing.Point(50, 100);
+            this.dgvPrivileges.Name = "dgvPrivileges";
+            this.dgvPrivileges.Size = new System.Drawing.Size(500, 200);
+            this.dgvPrivileges.TabIndex = 1;
+            this.dgvPrivileges.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvPrivileges.AllowUserToAddRows = false;
+            this.dgvPrivileges.AllowUserToDeleteRows = false;
+            this.dgvPrivileges.ReadOnly = true;
             // 
             // label1
             // 
@@ -50,18 +55,20 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 350);
+            this.ClientSize = new System.Drawing.Size(600, 350);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.lstPrivileges);
+            this.Controls.Add(this.dgvPrivileges);
             this.Controls.Add(this.cmbGrantee);
             this.Name = "ViewPrivilegesForm";
             this.Text = "View Privileges";
+            ((System.ComponentModel.ISupportInitialize)(this.dgvPrivileges)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }
 
+
         private System.Windows.Forms.ComboBox cmbGrantee;
-        private System.Windows.Forms.ListBox lstPrivileges;
+        private System.Windows.Forms.DataGridView dgvPrivileges;
         private System.Windows.Forms.Label label1;
     }
 }

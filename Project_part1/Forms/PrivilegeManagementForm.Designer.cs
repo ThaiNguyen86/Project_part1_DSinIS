@@ -22,8 +22,9 @@
             this.chkWithGrantOption = new System.Windows.Forms.CheckBox();
             this.btnGrant = new System.Windows.Forms.Button();
             this.btnRevoke = new System.Windows.Forms.Button();
-            this.cmbRole = new System.Windows.Forms.ComboBox(); // Changed from txtRole
+            this.cmbRole = new System.Windows.Forms.ComboBox();
             this.btnGrantRole = new System.Windows.Forms.Button();
+            this.btnRevokeRole = new System.Windows.Forms.Button(); // New button
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -64,9 +65,7 @@
                 "CREATE VIEW",
                 "CREATE PROCEDURE",
                 "UNLIMITED TABLESPACE",
-                "DBA",
-                "SYSDBA",
-                "SYSOPER"});
+                "DBA"});
             this.cmbPrivilege.Location = new System.Drawing.Point(150, 110);
             this.cmbPrivilege.Name = "cmbPrivilege";
             this.cmbPrivilege.Size = new System.Drawing.Size(200, 21);
@@ -129,6 +128,16 @@
             this.btnGrantRole.UseVisualStyleBackColor = true;
             this.btnGrantRole.Click += new System.EventHandler(this.btnGrantRole_Click);
             // 
+            // btnRevokeRole
+            // 
+            this.btnRevokeRole.Location = new System.Drawing.Point(260, 270);
+            this.btnRevokeRole.Name = "btnRevokeRole";
+            this.btnRevokeRole.Size = new System.Drawing.Size(100, 30);
+            this.btnRevokeRole.TabIndex = 14;
+            this.btnRevokeRole.Text = "Revoke Role";
+            this.btnRevokeRole.UseVisualStyleBackColor = true;
+            this.btnRevokeRole.Click += new System.EventHandler(this.btnRevokeRole_Click);
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -179,6 +188,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(400, 350);
+            this.Controls.Add(this.btnRevokeRole); // Add new button to form
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -206,8 +216,9 @@
         private System.Windows.Forms.CheckBox chkWithGrantOption;
         private System.Windows.Forms.Button btnGrant;
         private System.Windows.Forms.Button btnRevoke;
-        private System.Windows.Forms.ComboBox cmbRole; // Changed from txtRole
+        private System.Windows.Forms.ComboBox cmbRole;
         private System.Windows.Forms.Button btnGrantRole;
+        private System.Windows.Forms.Button btnRevokeRole; // New button declaration
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;

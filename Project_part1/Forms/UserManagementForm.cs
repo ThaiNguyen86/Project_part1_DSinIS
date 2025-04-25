@@ -13,32 +13,67 @@ namespace OracleUserManagementApp.Forms
         {
             InitializeComponent();
             _oracleService = new OracleService();
+            SetupDataGridView();
             LoadUsersAndRoles();
+        }
+
+        private void SetupDataGridView()
+        {
+            // Clear any existing columns
+            dgvUsersRoles.Columns.Clear();
+
+            // Add columns to the DataGridView
+            dgvUsersRoles.Columns.Add("Name", "Name");
+            dgvUsersRoles.Columns.Add("Type", "Type");
+            dgvUsersRoles.Columns.Add("Status", "Status");
+
+            // Optional: Set column widths or other properties
+            dgvUsersRoles.Columns["Name"].Width = 150;
+            dgvUsersRoles.Columns["Type"].Width = 100;
+            dgvUsersRoles.Columns["Status"].Width = 100;
+
+            // Enable sorting
+            foreach (DataGridViewColumn column in dgvUsersRoles.Columns)
+            {
+                column.SortMode = DataGridViewColumnSortMode.Automatic;
+            }
+
+            // Optional: Add alternating row colors for better readability
+            dgvUsersRoles.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.LightGray;
         }
 
         private void LoadUsersAndRoles()
         {
-            lstUsersRoles.Items.Clear();
+            // Clear existing rows
+            dgvUsersRoles.Rows.Clear();
+
             var userRoles = _oracleService.GetUsersAndRoles();
             var checkConnection = _oracleService.TestConnection();
             if (userRoles.Count == 0)
             {
                 if (checkConnection)
                 {
-                    lstUsersRoles.Items.Add("No users or roles found.");
+                    MessageBox.Show("No users or roles found.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    lstUsersRoles.Items.Add("No users or roles found. Check database connection.");
+                    MessageBox.Show("No users or roles found. Check database connection.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
             {
                 foreach (var item in userRoles)
                 {
-                    lstUsersRoles.Items.Add($"{item.Name} ({item.Type})");
+                    dgvUsersRoles.Rows.Add(
+                        item.Name,
+                        item.Type,
+                        item.Type == "USER" ? item.Status : "N/A"
+                    );
                 }
             }
+
+            // Refresh the DataGridView
+            dgvUsersRoles.Refresh();
         }
 
         private void btnCreateUser_Click(object sender, EventArgs e)
@@ -53,17 +88,15 @@ namespace OracleUserManagementApp.Forms
 
             try
             {
-                using (var conn = Utils.ConnectionHelper.GetConnection())
+                // Use OracleService instead of direct connection
+                _oracleService.CreateUser(new Models.UserRoleModel
                 {
-                    conn.Open();
-                    string sql = $"CREATE USER {username} IDENTIFIED BY {password}";
-                    using (var cmd = new OracleCommand(sql, conn))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    MessageBox.Show($"User {username} created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadUsersAndRoles();
-                }
+                    Name = username,
+                    Password = password,
+                    Type = "USER"
+                });
+                MessageBox.Show($"User {username} created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadUsersAndRoles();
             }
             catch (OracleException ex)
             {
@@ -82,17 +115,9 @@ namespace OracleUserManagementApp.Forms
 
             try
             {
-                using (var conn = Utils.ConnectionHelper.GetConnection())
-                {
-                    conn.Open();
-                    string sql = $"CREATE ROLE {roleName}";
-                    using (var cmd = new OracleCommand(sql, conn))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    MessageBox.Show($"Role {roleName} created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadUsersAndRoles();
-                }
+                _oracleService.CreateRole(roleName);
+                MessageBox.Show($"Role {roleName} created successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadUsersAndRoles();
             }
             catch (OracleException ex)
             {
@@ -102,32 +127,32 @@ namespace OracleUserManagementApp.Forms
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (lstUsersRoles.SelectedItem == null)
+            if (dgvUsersRoles.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select a user or role to delete.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string selectedItem = lstUsersRoles.SelectedItem.ToString();
-            string name = selectedItem.Substring(0, selectedItem.IndexOf('(')).Trim();
-            string type = selectedItem.Contains("(USER)") ? "USER" : "ROLE";
+            // Get the selected row
+            DataGridViewRow selectedRow = dgvUsersRoles.SelectedRows[0];
+            string name = selectedRow.Cells["Name"].Value.ToString();
+            string type = selectedRow.Cells["Type"].Value.ToString();
 
             if (MessageBox.Show($"Are you sure you want to delete {type.ToLower()} {name}?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
             try
             {
-                using (var conn = Utils.ConnectionHelper.GetConnection())
+                if (type == "USER")
                 {
-                    conn.Open();
-                    string sql = type == "USER" ? $"DROP USER {name} CASCADE" : $"DROP ROLE {name}";
-                    using (var cmd = new OracleCommand(sql, conn))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    MessageBox.Show($"{type} {name} deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadUsersAndRoles();
+                    _oracleService.DeleteUser(name);
                 }
+                else // type == "ROLE"
+                {
+                    _oracleService.DeleteRole(name);
+                }
+                MessageBox.Show($"{type} {name} deleted successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadUsersAndRoles();
             }
             catch (OracleException ex)
             {

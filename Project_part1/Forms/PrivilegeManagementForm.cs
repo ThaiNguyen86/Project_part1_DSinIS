@@ -17,6 +17,8 @@ namespace OracleUserManagementApp.Forms
             LoadObjects();
             LoadPrivileges();
             LoadRoles();
+            // Re-attach the event handler for Grantee changes
+            cmbGrantee.SelectedIndexChanged += new EventHandler(cmbGrantee_SelectedIndexChanged);
         }
 
         private void LoadGrantees()
@@ -31,14 +33,22 @@ namespace OracleUserManagementApp.Forms
 
         private void LoadObjects()
         {
+            // Preserve the current selection
+            string selectedObject = cmbObject.SelectedItem?.ToString();
+
             cmbObject.Items.Clear();
             var objects = _oracleService.GetDatabaseObjects();
             foreach (var obj in objects)
             {
                 cmbObject.Items.Add(obj);
             }
-            // Add "N/A" for system privileges/roles
             cmbObject.Items.Add("N/A");
+
+            // Restore the previous selection if it still exists
+            if (!string.IsNullOrEmpty(selectedObject) && cmbObject.Items.Contains(selectedObject))
+            {
+                cmbObject.SelectedItem = selectedObject;
+            }
         }
 
         private void LoadPrivileges()
@@ -47,25 +57,23 @@ namespace OracleUserManagementApp.Forms
             // Object privileges
             cmbPrivilege.Items.AddRange(new object[]
             {
-                "SELECT",
-                "INSERT",
-                "UPDATE",
-                "DELETE",
-                "EXECUTE"
+            "SELECT",
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+            "EXECUTE"
             });
             // System privileges and roles
             cmbPrivilege.Items.AddRange(new object[]
             {
-                "CREATE SESSION",
-                "CREATE TABLE",
-                "CREATE USER",
-                "CREATE ROLE",
-                "CREATE VIEW",
-                "CREATE PROCEDURE",
-                "UNLIMITED TABLESPACE",
-                "DBA",
-                "SYSDBA",
-                "SYSOPER"
+            "CREATE SESSION",
+            "CREATE TABLE",
+            "CREATE USER",
+            "CREATE ROLE",
+            "CREATE VIEW",
+            "CREATE PROCEDURE",
+            "UNLIMITED TABLESPACE",
+            "DBA"
             });
             cmbPrivilege.SelectedIndexChanged += new EventHandler(cmbPrivilege_SelectedIndexChanged);
         }
@@ -80,6 +88,21 @@ namespace OracleUserManagementApp.Forms
             }
         }
 
+        private void cmbGrantee_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Reset other controls when Grantee changes, but keep Grantee selection
+            cmbObject.SelectedItem = null;
+            cmbPrivilege.SelectedItem = null;
+            cmbColumn.Items.Clear();
+            cmbColumn.SelectedItem = null;
+            cmbColumn.Text = ""; // Explicitly clear the Text property
+            chkWithGrantOption.Checked = false;
+            cmbRole.SelectedItem = null;
+            cmbObject.Enabled = true;
+            cmbColumn.Enabled = true;
+            chkWithGrantOption.Enabled = true;
+        }
+
         private void cmbPrivilege_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbPrivilege.SelectedItem == null) return;
@@ -90,25 +113,45 @@ namespace OracleUserManagementApp.Forms
 
             if (isObjectPrivilege)
             {
+                // Enable controls for object privileges and preserve current object selection
                 cmbObject.Enabled = true;
                 cmbColumn.Enabled = true;
                 chkWithGrantOption.Enabled = true;
-                cmbObject.SelectedItem = null; // Allow object selection
+
+                // Reload columns if an object is selected
+                if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
+                {
+                    cmbColumn.Items.Clear();
+                    cmbColumn.SelectedItem = null;
+                    cmbColumn.Text = ""; // Explicitly clear the Text property
+                    var columns = _oracleService.GetColumns(cmbObject.SelectedItem.ToString());
+                    foreach (var col in columns)
+                    {
+                        cmbColumn.Items.Add(col);
+                    }
+                }
             }
             else
             {
+                // Disable controls and set to "N/A" for system privileges/roles
                 cmbObject.Enabled = false;
                 cmbColumn.Enabled = false;
                 chkWithGrantOption.Enabled = false;
                 chkWithGrantOption.Checked = false;
-                cmbObject.SelectedItem = "N/A"; // Set to "N/A" for system privileges/roles
+                cmbObject.SelectedItem = "N/A";
                 cmbColumn.Items.Clear();
+                cmbColumn.SelectedItem = null;
+                cmbColumn.Text = ""; // Explicitly clear the Text property
             }
         }
 
         private void cmbObject_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // Reset column selection when object changes
             cmbColumn.Items.Clear();
+            cmbColumn.SelectedItem = null;
+            cmbColumn.Text = ""; // Explicitly clear the Text property
+
             if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
             {
                 var columns = _oracleService.GetColumns(cmbObject.SelectedItem.ToString());
@@ -146,9 +189,9 @@ namespace OracleUserManagementApp.Forms
                         MessageBox.Show("Please select a valid database object for this privilege.");
                         return;
                     }
-                    if ((privilege == "SELECT" || privilege == "UPDATE") && string.IsNullOrEmpty(columnName))
+                    if (!string.IsNullOrEmpty(columnName) && privilege != "SELECT" && privilege != "UPDATE")
                     {
-                        MessageBox.Show("Please select a column for SELECT or UPDATE privilege.");
+                        MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
                         return;
                     }
                 }
@@ -157,15 +200,21 @@ namespace OracleUserManagementApp.Forms
                     // System privileges/roles don't need object or column
                     objectName = null;
                     columnName = null;
-                    withGrantOption = false; // SYSDBA, SYSOPER, DBA don't support WITH GRANT OPTION
+                    withGrantOption = false; // System privileges don't support WITH GRANT OPTION
                 }
 
                 _oracleService.GrantPrivilege(grantee, privilege, objectName, columnName, withGrantOption);
                 MessageBox.Show($"Privilege {privilege} granted to {grantee} successfully!");
+
+                // Refresh the object list if a view might have been created (SELECT with column)
+                if (privilege == "SELECT" && !string.IsNullOrEmpty(columnName))
+                {
+                    LoadObjects();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Error granting privilege: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -195,6 +244,29 @@ namespace OracleUserManagementApp.Forms
                         MessageBox.Show("Please select a valid database object for this privilege.");
                         return;
                     }
+                    if (!string.IsNullOrEmpty(columnName) && privilege != "SELECT" && privilege != "UPDATE")
+                    {
+                        MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
+                        return;
+                    }
+                    // Warn user if revoking UPDATE with a column selected
+                    if (privilege == "UPDATE" && !string.IsNullOrEmpty(columnName))
+                    {
+                        DialogResult result = MessageBox.Show(
+                            "Revoking the UPDATE privilege will apply to the entire table, not just the selected column. Continue?",
+                            "Warning",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning);
+                        if (result == DialogResult.No)
+                        {
+                            return;
+                        }
+                    }
+                    // Optional: Warn user if revoking SELECT with a column and selecting a view
+                    if (privilege == "SELECT" && !string.IsNullOrEmpty(columnName) && objectName.EndsWith($"_VIEW_{columnName}", StringComparison.OrdinalIgnoreCase))
+                    {
+                        MessageBox.Show("You have selected a view. The revocation will apply to the base table associated with this view.");
+                    }
                 }
                 else
                 {
@@ -205,10 +277,16 @@ namespace OracleUserManagementApp.Forms
 
                 _oracleService.RevokePrivilege(grantee, privilege, objectName, columnName);
                 MessageBox.Show($"Privilege {privilege} revoked from {grantee} successfully!");
+
+                // Refresh the object list if a view might have been dropped (SELECT with column)
+                if (privilege == "SELECT" && !string.IsNullOrEmpty(columnName))
+                {
+                    LoadObjects();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Error revoking privilege: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -229,7 +307,28 @@ namespace OracleUserManagementApp.Forms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Error granting role: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnRevokeRole_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (cmbRole.SelectedItem == null || cmbGrantee.SelectedItem == null)
+                {
+                    MessageBox.Show("Please select a role and a grantee.");
+                    return;
+                }
+
+                string role = cmbRole.SelectedItem.ToString();
+                string user = cmbGrantee.SelectedItem.ToString();
+                _oracleService.RevokeRoleFromUser(role, user);
+                MessageBox.Show($"Role {role} revoked from {user} successfully!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error revoking role: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

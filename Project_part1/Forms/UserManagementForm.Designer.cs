@@ -15,19 +15,26 @@
 
         private void InitializeComponent()
         {
-            this.lstUsersRoles = new System.Windows.Forms.ListBox();
+            this.dgvUsersRoles = new System.Windows.Forms.DataGridView();
             this.btnCreateUser = new System.Windows.Forms.Button();
             this.btnCreateRole = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvUsersRoles)).BeginInit();
             this.SuspendLayout();
             // 
-            // lstUsersRoles
+            // dgvUsersRoles
             // 
-            this.lstUsersRoles.FormattingEnabled = true;
-            this.lstUsersRoles.Location = new System.Drawing.Point(30, 30);
-            this.lstUsersRoles.Name = "lstUsersRoles";
-            this.lstUsersRoles.Size = new System.Drawing.Size(300, 200);
-            this.lstUsersRoles.TabIndex = 0;
+            this.dgvUsersRoles.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvUsersRoles.Location = new System.Drawing.Point(30, 30);
+            this.dgvUsersRoles.Name = "dgvUsersRoles";
+            this.dgvUsersRoles.Size = new System.Drawing.Size(500, 200);
+            this.dgvUsersRoles.TabIndex = 0;
+            this.dgvUsersRoles.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvUsersRoles.AllowUserToAddRows = false;
+            this.dgvUsersRoles.AllowUserToDeleteRows = false;
+            this.dgvUsersRoles.ReadOnly = true;
+            this.dgvUsersRoles.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvUsersRoles.MultiSelect = false;
             // 
             // btnCreateUser
             // 
@@ -63,18 +70,18 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(350, 300);
+            this.ClientSize = new System.Drawing.Size(560, 300);
             this.Controls.Add(this.btnDelete);
             this.Controls.Add(this.btnCreateRole);
             this.Controls.Add(this.btnCreateUser);
-            this.Controls.Add(this.lstUsersRoles);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Controls.Add(this.dgvUsersRoles);
             this.Name = "UserRoleManagementForm";
             this.Text = "Manage Users and Roles";
+            ((System.ComponentModel.ISupportInitialize)(this.dgvUsersRoles)).EndInit();
             this.ResumeLayout(false);
         }
 
-        private System.Windows.Forms.ListBox lstUsersRoles;
+        private System.Windows.Forms.DataGridView dgvUsersRoles;
         private System.Windows.Forms.Button btnCreateUser;
         private System.Windows.Forms.Button btnCreateRole;
         private System.Windows.Forms.Button btnDelete;

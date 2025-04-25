@@ -7,5 +7,6 @@
         public string PrivilegeName { get; set; }
         public string ColumnName { get; set; }
         public bool WithGrantOption { get; set; }
+        public string Type { get; set; } 
     }
 }
