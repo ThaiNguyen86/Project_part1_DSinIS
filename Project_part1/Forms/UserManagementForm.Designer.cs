@@ -19,6 +19,7 @@
             this.btnCreateUser = new System.Windows.Forms.Button();
             this.btnCreateRole = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
+            this.btnModify = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUsersRoles)).BeginInit();
             this.SuspendLayout();
             // 
@@ -66,12 +67,23 @@
             this.btnDelete.UseVisualStyleBackColor = true;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
+            // btnModify
+            // 
+            this.btnModify.Location = new System.Drawing.Point(330, 250);
+            this.btnModify.Name = "btnModify";
+            this.btnModify.Size = new System.Drawing.Size(90, 30);
+            this.btnModify.TabIndex = 4;
+            this.btnModify.Text = "Modify";
+            this.btnModify.UseVisualStyleBackColor = true;
+            this.btnModify.Click += new System.EventHandler(this.btnModify_Click);
+            // 
             // UserRoleManagementForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(560, 300);
             this.Controls.Add(this.btnDelete);
+            this.Controls.Add(this.btnModify);
             this.Controls.Add(this.btnCreateRole);
             this.Controls.Add(this.btnCreateUser);
             this.Controls.Add(this.dgvUsersRoles);
@@ -83,7 +95,8 @@
 
         private System.Windows.Forms.DataGridView dgvUsersRoles;
         private System.Windows.Forms.Button btnCreateUser;
-        private System.Windows.Forms.Button btnCreateRole;
+        private System.Windows.Forms.Button btnModify;
         private System.Windows.Forms.Button btnDelete;
+        private System.Windows.Forms.Button btnCreateRole;
     }
 }

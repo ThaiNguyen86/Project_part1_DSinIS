@@ -78,8 +78,8 @@ namespace OracleUserManagementApp.Forms
 
         private void btnCreateUser_Click(object sender, EventArgs e)
         {
-            string username = Prompt.ShowDialog("Enter username:", "Create User");
-            string password = Prompt.ShowDialog("Enter password:", "Create User");
+            // Prompt for username and password in a single dialog
+            var (username, password) = Prompt.ShowDualInputDialog("Username:", "Password:", "Create User");
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 MessageBox.Show("Username and password cannot be empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -88,7 +88,7 @@ namespace OracleUserManagementApp.Forms
 
             try
             {
-                // Use OracleService instead of direct connection
+                // Use OracleService to create the user
                 _oracleService.CreateUser(new Models.UserRoleModel
                 {
                     Name = username,
@@ -103,7 +103,75 @@ namespace OracleUserManagementApp.Forms
                 MessageBox.Show($"Error creating user: {ex.Message}\nError Code: {ex.Number}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        // Event handler for the Modify button
+        private void btnModify_Click(object sender, EventArgs e)
+        {
+            // Check if a row is selected
+            if (dgvUsersRoles.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select a user or role to modify.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            // Get the selected row
+            DataGridViewRow selectedRow = dgvUsersRoles.SelectedRows[0];
+            string name = selectedRow.Cells["Name"].Value.ToString();
+            string type = selectedRow.Cells["Type"].Value.ToString();
+
+            try
+            {
+                if (type == "USER")
+                {
+                    // For users, prompt for new username and password
+                    var (newUsername, newPassword) = Prompt.ShowDualInputDialog("New Username:", "New Password:", $"Modify User {name}");
+                    if (string.IsNullOrWhiteSpace(newUsername) || string.IsNullOrWhiteSpace(newPassword))
+                    {
+                        MessageBox.Show("New username and password cannot be empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Confirm the modification
+                    if (MessageBox.Show($"Are you sure you want to modify user {name} to {newUsername} with a new password?", "Confirm Modify", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                        return;
+
+                    // If the username has changed, rename the user; otherwise, just change the password
+                    if (newUsername != name)
+                    {
+                        _oracleService.RenameUser(name, newUsername, newPassword);
+                        MessageBox.Show($"User {name} modified to {newUsername} successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        _oracleService.ChangeUserPassword(name, newPassword);
+                        MessageBox.Show($"Password for user {name} changed successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    LoadUsersAndRoles(); // Refresh the grid
+                }
+                else // type == "ROLE"
+                {
+                    // For roles, prompt for a new role name
+                    string newRoleName = Prompt.ShowDialog("Enter new role name:", $"Modify Role {name}");
+                    if (string.IsNullOrWhiteSpace(newRoleName))
+                    {
+                        MessageBox.Show("New role name cannot be empty.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Confirm the modification
+                    if (MessageBox.Show($"Are you sure you want to rename role {name} to {newRoleName}?", "Confirm Modify", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                        return;
+
+                    // Rename the role
+                    _oracleService.RenameRole(name, newRoleName);
+                    MessageBox.Show($"Role {name} renamed to {newRoleName} successfully.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadUsersAndRoles(); // Refresh the grid
+                }
+            }
+            catch (OracleException ex)
+            {
+                MessageBox.Show($"Error modifying {type.ToLower()}: {ex.Message}\nError Code: {ex.Number}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void btnCreateRole_Click(object sender, EventArgs e)
         {
             string roleName = Prompt.ShowDialog("Enter role name:", "Create Role");
@@ -160,23 +228,31 @@ namespace OracleUserManagementApp.Forms
             }
         }
     }
-
-    // Lớp hỗ trợ để hiển thị hộp thoại nhập liệu
     public static class Prompt
     {
+        // Displays a dialog to prompt the user for a single input
         public static string ShowDialog(string text, string caption)
         {
             Form prompt = new Form()
             {
                 Width = 300,
-                Height = 150,
+                Height = 180,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = caption,
                 StartPosition = FormStartPosition.CenterScreen
             };
-            Label textLabel = new Label() { Left = 50, Top = 20, Text = text };
-            TextBox textBox = new TextBox() { Left = 50, Top = 50, Width = 200 };
-            Button confirmation = new Button() { Text = "OK", Left = 150, Width = 100, Top = 80, DialogResult = DialogResult.OK };
+            Label textLabel = new Label()
+            {
+                Left = 50,
+                Top = 20,
+                Text = text,
+                Width = 200,
+                AutoSize = false,
+                MaximumSize = new System.Drawing.Size(200, 0),
+                Height = 40
+            };
+            TextBox textBox = new TextBox() { Left = 50, Top = 60, Width = 200 };
+            Button confirmation = new Button() { Text = "OK", Left = 150, Width = 100, Top = 90, DialogResult = DialogResult.OK };
             confirmation.Click += (sender, e) => { prompt.Close(); };
             prompt.Controls.Add(textBox);
             prompt.Controls.Add(confirmation);
@@ -184,6 +260,51 @@ namespace OracleUserManagementApp.Forms
             prompt.AcceptButton = confirmation;
 
             return prompt.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+        }
+
+        // Displays a dialog to prompt the user for two inputs (e.g., username and password)
+        public static (string input1, string input2) ShowDualInputDialog(string label1, string label2, string caption)
+        {
+            Form prompt = new Form()
+            {
+                Width = 350,
+                Height = 220,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = caption,
+                StartPosition = FormStartPosition.CenterScreen
+            };
+            Label labelInput1 = new Label()
+            {
+                Left = 50,
+                Top = 20,
+                Text = label1,
+                Width = 200,
+                AutoSize = false,
+                MaximumSize = new System.Drawing.Size(200, 0),
+                Height = 20
+            };
+            TextBox textBox1 = new TextBox() { Left = 50, Top = 40, Width = 250 };
+            Label labelInput2 = new Label()
+            {
+                Left = 50,
+                Top = 70,
+                Text = label2,
+                Width = 200,
+                AutoSize = false,
+                MaximumSize = new System.Drawing.Size(200, 0),
+                Height = 20
+            };
+            TextBox textBox2 = new TextBox() { Left = 50, Top = 90, Width = 250, UseSystemPasswordChar = true }; // Password field
+            Button confirmation = new Button() { Text = "OK", Left = 150, Width = 100, Top = 130, DialogResult = DialogResult.OK };
+            confirmation.Click += (sender, e) => { prompt.Close(); };
+            prompt.Controls.Add(labelInput1);
+            prompt.Controls.Add(textBox1);
+            prompt.Controls.Add(labelInput2);
+            prompt.Controls.Add(textBox2);
+            prompt.Controls.Add(confirmation);
+            prompt.AcceptButton = confirmation;
+
+            return prompt.ShowDialog() == DialogResult.OK ? (textBox1.Text, textBox2.Text) : (string.Empty, string.Empty);
         }
     }
 }

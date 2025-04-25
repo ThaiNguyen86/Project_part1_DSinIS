@@ -36,6 +36,150 @@ namespace OracleUserManagementApp.Services
             }
         }
 
+        // Renames an existing user by dropping and recreating it with preserved roles and privileges
+        public void RenameUser(string oldUsername, string newUsername, string password)
+        {
+            using (var conn = ConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                List<PrivilegeModel> privileges = GetPrivileges(oldUsername);
+
+                string dropSql = $"DROP USER {oldUsername} CASCADE";
+                using (var dropCmd = new OracleCommand(dropSql, conn))
+                {
+                    dropCmd.ExecuteNonQuery();
+                }
+
+                string createSql = $"CREATE USER {newUsername} IDENTIFIED BY {password}";
+                using (var createCmd = new OracleCommand(createSql, conn))
+                {
+                    createCmd.ExecuteNonQuery();
+                }
+
+                foreach (var privilege in privileges)
+                {
+                    try
+                    {
+                        if (privilege.Type == "Role")
+                        {
+                            GrantRoleToUser(privilege.PrivilegeName, newUsername);
+                        }
+                        else if (privilege.Type == "System Privilege")
+                        {
+                            GrantPrivilege(newUsername, privilege.PrivilegeName, null, null, false);
+                        }
+                        else if (privilege.Type == "Object Privilege")
+                        {
+                            GrantPrivilege(newUsername, privilege.PrivilegeName, privilege.ObjectName, null, privilege.WithGrantOption);
+                        }
+                        else if (privilege.Type == "Column Privilege")
+                        {
+                            GrantPrivilege(newUsername, privilege.PrivilegeName, privilege.ObjectName, privilege.ColumnName, privilege.WithGrantOption);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error restoring privilege {privilege.PrivilegeName} for user {newUsername}: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        // Renames an existing role by dropping and recreating it with preserved privileges and grants
+        public void RenameRole(string oldRoleName, string newRoleName)
+        {
+            using (var conn = ConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                List<PrivilegeModel> privileges = GetPrivileges(oldRoleName);
+                List<string> grantees = new List<string>();
+                string granteesSql = @"
+                SELECT grantee
+                FROM dba_role_privs
+                WHERE granted_role = :roleName";
+                using (var granteesCmd = new OracleCommand(granteesSql, conn))
+                {
+                    granteesCmd.Parameters.Add(new OracleParameter("roleName", oldRoleName));
+                    using (var reader = granteesCmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            grantees.Add(reader["grantee"].ToString());
+                        }
+                    }
+                }
+
+                string dropSql = $"DROP ROLE {oldRoleName}";
+                using (var dropCmd = new OracleCommand(dropSql, conn))
+                {
+                    dropCmd.ExecuteNonQuery();
+                }
+
+                string createSql = $"CREATE ROLE {newRoleName}";
+                using (var createCmd = new OracleCommand(createSql, conn))
+                {
+                    createCmd.ExecuteNonQuery();
+                }
+
+                foreach (var privilege in privileges)
+                {
+                    try
+                    {
+                        if (privilege.Type == "System Privilege")
+                        {
+                            GrantPrivilege(newRoleName, privilege.PrivilegeName, null, null, false);
+                        }
+                        else if (privilege.Type == "Object Privilege")
+                        {
+                            GrantPrivilege(newRoleName, privilege.PrivilegeName, privilege.ObjectName, null, privilege.WithGrantOption);
+                        }
+                        else if (privilege.Type == "Column Privilege")
+                        {
+                            GrantPrivilege(newRoleName, privilege.PrivilegeName, privilege.ObjectName, privilege.ColumnName, privilege.WithGrantOption);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error restoring privilege {privilege.PrivilegeName} for role {newRoleName}: {ex.Message}");
+                    }
+                }
+
+                foreach (var grantee in grantees)
+                {
+                    try
+                    {
+                        GrantRoleToUser(newRoleName, grantee);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error granting role {newRoleName} to {grantee}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        // Changes the password for an existing user
+        public void ChangeUserPassword(string username, string newPassword)
+        {
+            using (var conn = ConnectionHelper.GetConnection())
+            {
+                conn.Open();
+                // SQL command to alter the user's password
+                string sql = $"ALTER USER {username} IDENTIFIED BY {newPassword}";
+                try
+                {
+                    using (var cmd = new OracleCommand(sql, conn))
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (OracleException ex)
+                {
+                    throw new Exception($"Error changing password for user {username}: {ex.Message} (Error Code: {ex.Number})", ex);
+                }
+            }
+        }
         public void CreateRole(string roleName)
         {
             using (var conn = ConnectionHelper.GetConnection())

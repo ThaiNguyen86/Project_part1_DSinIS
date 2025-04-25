@@ -9,8 +9,8 @@ namespace OracleUserManagementApp.Utils
         private static bool _isSysDba;
         private static string _connectionType; // SERVICE hoặc SID
         private static string _serviceOrSidValue;
-        private static string _hostname; // New
-        private static string _port;     // New
+        private static string _hostname; 
+        private static string _port;     
 
         public static void SetCredentials(string username, string password, bool isSysDba, string connectionType, string serviceOrSidValue, string hostname, string port)
         {

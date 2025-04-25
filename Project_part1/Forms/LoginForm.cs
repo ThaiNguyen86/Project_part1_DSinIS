@@ -9,15 +9,15 @@ namespace OracleUserManagementApp.Forms
         public string Username { get; private set; }
         public string Password { get; private set; }
         public bool IsSysDba { get; private set; }
-        public string ConnectionType { get; private set; } // Service hoặc SID
+        public string ConnectionType { get; private set; } 
         public string ServiceOrSidValue { get; private set; }
-        public string Hostname { get; private set; } // New property for hostname
-        public string Port { get; private set; }     // New property for port
+        public string Hostname { get; private set; } 
+        public string Port { get; private set; }     
 
         public LoginForm()
         {
             InitializeComponent();
-            rbService.Checked = true; // Mặc định chọn Service
+            rbService.Checked = true; 
             UpdateInputState();
         }
 

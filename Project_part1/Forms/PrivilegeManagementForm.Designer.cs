@@ -65,7 +65,8 @@
                 "CREATE VIEW",
                 "CREATE PROCEDURE",
                 "UNLIMITED TABLESPACE",
-                "DBA"});
+                "DBA"
+            });
             this.cmbPrivilege.Location = new System.Drawing.Point(150, 110);
             this.cmbPrivilege.Name = "cmbPrivilege";
             this.cmbPrivilege.Size = new System.Drawing.Size(200, 21);
