@@ -62,7 +62,7 @@ namespace OracleUserManagementApp.Forms
 
             Username = txtUsername.Text.Trim();
             Password = txtPassword.Text.Trim();
-            IsSysDba = true; // Có thể thêm checkbox cho tùy chọn này
+            IsSysDba = true;
             ConnectionType = rbService.Checked ? "SERVICE" : "SID";
             ServiceOrSidValue = serviceOrSidValue;
 
@@ -88,7 +88,7 @@ namespace OracleUserManagementApp.Forms
             try
             {
                 string connectDataKey = connectionType == "SERVICE" ? "SERVICE_NAME" : "SID";
-                string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=DESKTOP-SOM2N3B.mshome.net)(PORT=1521))(CONNECT_DATA=({connectDataKey}={serviceOrSidValue})));User Id={username};Password={password};";
+                string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=({connectDataKey}={serviceOrSidValue})));User Id={username};Password={password};";
                 if (isSysDba)
                     connectionString += "DBA Privilege=SYSDBA;";
 

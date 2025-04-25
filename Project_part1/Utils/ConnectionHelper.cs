@@ -22,7 +22,7 @@ namespace OracleUserManagementApp.Utils
         public static OracleConnection GetConnection()
         {
             string connectDataKey = _connectionType == "SERVICE" ? "SERVICE_NAME" : "SID";
-            string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=DESKTOP-SOM2N3B.mshome.net)(PORT=1521))(CONNECT_DATA=({connectDataKey}={_serviceOrSidValue})));User Id={_username};Password={_password};";
+            string connectionString = $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=({connectDataKey}={_serviceOrSidValue})));User Id={_username};Password={_password};";
             if (_isSysDba)
                 connectionString += "DBA Privilege=SYSDBA;";
             return new OracleConnection(connectionString);

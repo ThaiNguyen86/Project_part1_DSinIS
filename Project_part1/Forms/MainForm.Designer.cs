@@ -18,6 +18,7 @@
             this.btnManageUsers = new System.Windows.Forms.Button();
             this.btnManagePrivileges = new System.Windows.Forms.Button();
             this.btnViewPrivileges = new System.Windows.Forms.Button();
+            this.btnBackToLogin = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnManageUsers
@@ -53,11 +54,23 @@
             this.btnViewPrivileges.UseVisualStyleBackColor = true;
             this.btnViewPrivileges.Click += new System.EventHandler(this.btnViewPrivileges_Click);
             // 
+            // btnBackToLogin
+            // 
+            this.btnBackToLogin.Location = new System.Drawing.Point(117, 446);
+            this.btnBackToLogin.Margin = new System.Windows.Forms.Padding(7, 7, 7, 7);
+            this.btnBackToLogin.Name = "btnBackToLogin";
+            this.btnBackToLogin.Size = new System.Drawing.Size(467, 89);
+            this.btnBackToLogin.TabIndex = 3;
+            this.btnBackToLogin.Text = "Back to Login";
+            this.btnBackToLogin.UseVisualStyleBackColor = true;
+            this.btnBackToLogin.Click += new System.EventHandler(this.btnBackToLogin_Click);
+            //
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(14F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(700, 558);
+            this.ClientSize = new System.Drawing.Size(700, 669);
+            this.Controls.Add(this.btnBackToLogin);
             this.Controls.Add(this.btnViewPrivileges);
             this.Controls.Add(this.btnManagePrivileges);
             this.Controls.Add(this.btnManageUsers);
@@ -65,11 +78,11 @@
             this.Name = "MainForm";
             this.Text = "Oracle DB Admin";
             this.ResumeLayout(false);
-
         }
 
         private System.Windows.Forms.Button btnManageUsers;
         private System.Windows.Forms.Button btnManagePrivileges;
         private System.Windows.Forms.Button btnViewPrivileges;
+        private System.Windows.Forms.Button btnBackToLogin;
     }
 }

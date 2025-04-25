@@ -20,9 +20,17 @@ namespace OracleUserManagementApp.Forms
         {
             lstUsersRoles.Items.Clear();
             var userRoles = _oracleService.GetUsersAndRoles();
+            var checkConnection = _oracleService.TestConnection();
             if (userRoles.Count == 0)
             {
-                lstUsersRoles.Items.Add("No users or roles found. Check database connection.");
+                if (checkConnection)
+                {
+                    lstUsersRoles.Items.Add("No users or roles found.");
+                }
+                else
+                {
+                    lstUsersRoles.Items.Add("No users or roles found. Check database connection.");
+                }
             }
             else
             {

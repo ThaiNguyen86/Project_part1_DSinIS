@@ -12,22 +12,41 @@ namespace OracleUserManagementApp
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            using (var loginForm = new LoginForm())
+            bool exitApplication = false;
+
+            while (!exitApplication)
             {
-                if (loginForm.ShowDialog() == DialogResult.OK)
+                using (var loginForm = new LoginForm())
                 {
-                    Utils.ConnectionHelper.SetCredentials(
-                        loginForm.Username,
-                        loginForm.Password,
-                        loginForm.IsSysDba,
-                        loginForm.ConnectionType,
-                        loginForm.ServiceOrSidValue
-                    );
-                    Application.Run(new MainForm());
-                }
-                else
-                {
-                    return;
+                    if (loginForm.ShowDialog() == DialogResult.OK)
+                    {
+                        // Set credentials for the new login
+                        Utils.ConnectionHelper.SetCredentials(
+                            loginForm.Username,
+                            loginForm.Password,
+                            loginForm.IsSysDba,
+                            loginForm.ConnectionType,
+                            loginForm.ServiceOrSidValue
+                        );
+
+                        // Show MainForm non-modally
+                        using (var mainForm = new MainForm())
+                        {
+                            mainForm.Show();
+                            // Keep the application running until MainForm is closed
+                            Application.DoEvents(); // Process events to show MainForm
+                            while (mainForm.Visible)
+                            {
+                                Application.DoEvents(); // Keep the UI responsive
+                                System.Threading.Thread.Sleep(10); // Prevent CPU overuse
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // User canceled login or closed LoginForm
+                        exitApplication = true;
+                    }
                 }
             }
         }

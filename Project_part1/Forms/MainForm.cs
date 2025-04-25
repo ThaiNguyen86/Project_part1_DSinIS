@@ -28,6 +28,7 @@ namespace OracleUserManagementApp.Forms
             var form = new ViewPrivilegesForm();
             form.ShowDialog();
         }
+
         private void btnTestConnection_Click(object sender, EventArgs e)
         {
             var service = new OracleService();
@@ -35,6 +36,12 @@ namespace OracleUserManagementApp.Forms
             {
                 MessageBox.Show("Connection successful!");
             }
+        }
+
+        private void btnBackToLogin_Click(object sender, EventArgs e)
+        {
+            // Close MainForm to return to LoginForm (handled by Program.cs)
+            this.Close();
         }
     }
 }
