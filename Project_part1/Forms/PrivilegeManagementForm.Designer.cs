@@ -1,5 +1,4 @@
-﻿
-namespace OracleUserManagementApp.Forms
+﻿namespace OracleUserManagementApp.Forms
 {
     partial class PrivilegeManagementForm
     {
@@ -23,7 +22,7 @@ namespace OracleUserManagementApp.Forms
             this.chkWithGrantOption = new System.Windows.Forms.CheckBox();
             this.btnGrant = new System.Windows.Forms.Button();
             this.btnRevoke = new System.Windows.Forms.Button();
-            this.txtRole = new System.Windows.Forms.TextBox();
+            this.cmbRole = new System.Windows.Forms.ComboBox(); // Changed from txtRole
             this.btnGrantRole = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -53,15 +52,26 @@ namespace OracleUserManagementApp.Forms
             // 
             this.cmbPrivilege.FormattingEnabled = true;
             this.cmbPrivilege.Items.AddRange(new object[] {
-            "SELECT",
-            "INSERT",
-            "UPDATE",
-            "DELETE",
-            "EXECUTE"});
+                "SELECT",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "EXECUTE",
+                "CREATE SESSION",
+                "CREATE TABLE",
+                "CREATE USER",
+                "CREATE ROLE",
+                "CREATE VIEW",
+                "CREATE PROCEDURE",
+                "UNLIMITED TABLESPACE",
+                "DBA",
+                "SYSDBA",
+                "SYSOPER"});
             this.cmbPrivilege.Location = new System.Drawing.Point(150, 110);
             this.cmbPrivilege.Name = "cmbPrivilege";
             this.cmbPrivilege.Size = new System.Drawing.Size(200, 21);
             this.cmbPrivilege.TabIndex = 2;
+            this.cmbPrivilege.SelectedIndexChanged += new System.EventHandler(this.cmbPrivilege_SelectedIndexChanged);
             // 
             // cmbColumn
             // 
@@ -101,12 +111,13 @@ namespace OracleUserManagementApp.Forms
             this.btnRevoke.UseVisualStyleBackColor = true;
             this.btnRevoke.Click += new System.EventHandler(this.btnRevoke_Click);
             // 
-            // txtRole
+            // cmbRole
             // 
-            this.txtRole.Location = new System.Drawing.Point(150, 240);
-            this.txtRole.Name = "txtRole";
-            this.txtRole.Size = new System.Drawing.Size(200, 20);
-            this.txtRole.TabIndex = 7;
+            this.cmbRole.FormattingEnabled = true;
+            this.cmbRole.Location = new System.Drawing.Point(150, 240);
+            this.cmbRole.Name = "cmbRole";
+            this.cmbRole.Size = new System.Drawing.Size(200, 21);
+            this.cmbRole.TabIndex = 7;
             // 
             // btnGrantRole
             // 
@@ -174,7 +185,7 @@ namespace OracleUserManagementApp.Forms
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnGrantRole);
-            this.Controls.Add(this.txtRole);
+            this.Controls.Add(this.cmbRole);
             this.Controls.Add(this.btnRevoke);
             this.Controls.Add(this.btnGrant);
             this.Controls.Add(this.chkWithGrantOption);
@@ -195,7 +206,7 @@ namespace OracleUserManagementApp.Forms
         private System.Windows.Forms.CheckBox chkWithGrantOption;
         private System.Windows.Forms.Button btnGrant;
         private System.Windows.Forms.Button btnRevoke;
-        private System.Windows.Forms.TextBox txtRole;
+        private System.Windows.Forms.ComboBox cmbRole; // Changed from txtRole
         private System.Windows.Forms.Button btnGrantRole;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
