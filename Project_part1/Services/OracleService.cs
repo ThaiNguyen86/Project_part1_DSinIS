@@ -280,7 +280,12 @@ namespace OracleUserManagementApp.Services
             using (var conn = ConnectionHelper.GetConnection())
             {
                 conn.Open();
-                string sql = "SELECT object_name FROM dba_objects WHERE object_type IN ('TABLE', 'VIEW', 'PROCEDURE', 'FUNCTION')";
+                string sql = @"
+                    SELECT object_name 
+                    FROM dba_objects 
+                    WHERE object_type IN ('TABLE', 'VIEW', 'PROCEDURE', 'FUNCTION')
+                    AND owner NOT IN ('SYS', 'SYSTEM', 'DBSNMP', 'OUTLN', 'APPQOSSYS')
+                    AND oracle_maintained = 'N'";
                 using (var cmd = new OracleCommand(sql, conn))
                 {
                     using (var reader = cmd.ExecuteReader())
@@ -301,7 +306,11 @@ namespace OracleUserManagementApp.Services
             using (var conn = ConnectionHelper.GetConnection())
             {
                 conn.Open();
-                string sql = $"SELECT column_name FROM dba_tab_columns WHERE table_name = :tableName";
+                string sql = @"
+                    SELECT column_name 
+                    FROM dba_tab_columns 
+                    WHERE table_name = :tableName
+                    AND owner NOT IN ('SYS', 'SYSTEM', 'DBSNMP', 'OUTLN', 'APPQOSSYS')";
                 using (var cmd = new OracleCommand(sql, conn))
                 {
                     cmd.Parameters.Add(new OracleParameter("tableName", tableName));
