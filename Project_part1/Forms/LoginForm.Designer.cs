@@ -27,6 +27,10 @@
             this.txtService = new System.Windows.Forms.TextBox();
             this.lblSidInput = new System.Windows.Forms.Label();
             this.txtSid = new System.Windows.Forms.TextBox();
+            this.lblHostname = new System.Windows.Forms.Label(); // New
+            this.txtHostname = new System.Windows.Forms.TextBox(); // New
+            this.lblPort = new System.Windows.Forms.Label(); // New
+            this.txtPort = new System.Windows.Forms.TextBox(); // New
             this.SuspendLayout();
             // 
             // lblUsername
@@ -62,14 +66,48 @@
             this.txtPassword.TabIndex = 3;
             this.txtPassword.UseSystemPasswordChar = true;
             // 
+            // lblHostname
+            // 
+            this.lblHostname.AutoSize = true;
+            this.lblHostname.Location = new System.Drawing.Point(30, 90);
+            this.lblHostname.Name = "lblHostname";
+            this.lblHostname.Size = new System.Drawing.Size(58, 13);
+            this.lblHostname.TabIndex = 4;
+            this.lblHostname.Text = "Hostname:";
+            // 
+            // txtHostname
+            // 
+            this.txtHostname.Location = new System.Drawing.Point(120, 87);
+            this.txtHostname.Name = "txtHostname";
+            this.txtHostname.Size = new System.Drawing.Size(200, 20);
+            this.txtHostname.TabIndex = 5;
+            this.txtHostname.Text = "localhost"; // Default value
+            // 
+            // lblPort
+            // 
+            this.lblPort.AutoSize = true;
+            this.lblPort.Location = new System.Drawing.Point(30, 120);
+            this.lblPort.Name = "lblPort";
+            this.lblPort.Size = new System.Drawing.Size(33, 13);
+            this.lblPort.TabIndex = 6;
+            this.lblPort.Text = "Port:";
+            // 
+            // txtPort
+            // 
+            this.txtPort.Location = new System.Drawing.Point(120, 117);
+            this.txtPort.Name = "txtPort";
+            this.txtPort.Size = new System.Drawing.Size(200, 20);
+            this.txtPort.TabIndex = 7;
+            this.txtPort.Text = "1521"; // Default value
+            // 
             // rbService
             // 
             this.rbService.AutoSize = true;
             this.rbService.Checked = true;
-            this.rbService.Location = new System.Drawing.Point(120, 90);
+            this.rbService.Location = new System.Drawing.Point(120, 150);
             this.rbService.Name = "rbService";
             this.rbService.Size = new System.Drawing.Size(61, 17);
-            this.rbService.TabIndex = 4;
+            this.rbService.TabIndex = 8;
             this.rbService.TabStop = true;
             this.rbService.Text = "Service";
             this.rbService.CheckedChanged += new System.EventHandler(this.rbService_CheckedChanged);
@@ -77,61 +115,61 @@
             // rbSid
             // 
             this.rbSid.AutoSize = true;
-            this.rbSid.Location = new System.Drawing.Point(200, 90);
+            this.rbSid.Location = new System.Drawing.Point(200, 150);
             this.rbSid.Name = "rbSid";
             this.rbSid.Size = new System.Drawing.Size(44, 17);
-            this.rbSid.TabIndex = 5;
+            this.rbSid.TabIndex = 9;
             this.rbSid.Text = "SID";
             this.rbSid.CheckedChanged += new System.EventHandler(this.rbSid_CheckedChanged);
             // 
             // lblServiceInput
             // 
             this.lblServiceInput.AutoSize = true;
-            this.lblServiceInput.Location = new System.Drawing.Point(30, 120);
+            this.lblServiceInput.Location = new System.Drawing.Point(30, 180);
             this.lblServiceInput.Name = "lblServiceInput";
             this.lblServiceInput.Size = new System.Drawing.Size(50, 13);
-            this.lblServiceInput.TabIndex = 6;
+            this.lblServiceInput.TabIndex = 10;
             this.lblServiceInput.Text = "Service:";
             // 
             // txtService
             // 
-            this.txtService.Location = new System.Drawing.Point(120, 117);
+            this.txtService.Location = new System.Drawing.Point(120, 177);
             this.txtService.Name = "txtService";
             this.txtService.Size = new System.Drawing.Size(200, 20);
-            this.txtService.TabIndex = 7;
+            this.txtService.TabIndex = 11;
             // 
             // lblSidInput
             // 
             this.lblSidInput.AutoSize = true;
-            this.lblSidInput.Location = new System.Drawing.Point(30, 150);
+            this.lblSidInput.Location = new System.Drawing.Point(30, 210);
             this.lblSidInput.Name = "lblSidInput";
             this.lblSidInput.Size = new System.Drawing.Size(33, 13);
-            this.lblSidInput.TabIndex = 8;
+            this.lblSidInput.TabIndex = 12;
             this.lblSidInput.Text = "SID:";
             // 
             // txtSid
             // 
-            this.txtSid.Location = new System.Drawing.Point(120, 147);
+            this.txtSid.Location = new System.Drawing.Point(120, 207);
             this.txtSid.Name = "txtSid";
             this.txtSid.Size = new System.Drawing.Size(200, 20);
-            this.txtSid.TabIndex = 9;
+            this.txtSid.TabIndex = 13;
             // 
             // btnLogin
             // 
-            this.btnLogin.Location = new System.Drawing.Point(120, 180);
+            this.btnLogin.Location = new System.Drawing.Point(120, 240);
             this.btnLogin.Name = "btnLogin";
             this.btnLogin.Size = new System.Drawing.Size(75, 23);
-            this.btnLogin.TabIndex = 10;
+            this.btnLogin.TabIndex = 14;
             this.btnLogin.Text = "Login";
             this.btnLogin.UseVisualStyleBackColor = true;
             this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(245, 180);
+            this.btnCancel.Location = new System.Drawing.Point(245, 240);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
-            this.btnCancel.TabIndex = 11;
+            this.btnCancel.TabIndex = 15;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -140,7 +178,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(350, 220);
+            this.ClientSize = new System.Drawing.Size(350, 280); // Increased height
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnLogin);
             this.Controls.Add(this.txtSid);
@@ -149,6 +187,10 @@
             this.Controls.Add(this.lblServiceInput);
             this.Controls.Add(this.rbSid);
             this.Controls.Add(this.rbService);
+            this.Controls.Add(this.txtPort);
+            this.Controls.Add(this.lblPort);
+            this.Controls.Add(this.txtHostname);
+            this.Controls.Add(this.lblHostname);
             this.Controls.Add(this.txtPassword);
             this.Controls.Add(this.lblPassword);
             this.Controls.Add(this.txtUsername);
@@ -175,5 +217,9 @@
         private System.Windows.Forms.TextBox txtService;
         private System.Windows.Forms.Label lblSidInput;
         private System.Windows.Forms.TextBox txtSid;
+        private System.Windows.Forms.Label lblHostname; // New
+        private System.Windows.Forms.TextBox txtHostname; // New
+        private System.Windows.Forms.Label lblPort; // New
+        private System.Windows.Forms.TextBox txtPort; // New
     }
 }

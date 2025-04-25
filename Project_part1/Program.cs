@@ -20,25 +20,26 @@ namespace OracleUserManagementApp
                 {
                     if (loginForm.ShowDialog() == DialogResult.OK)
                     {
-                        // Set credentials for the new login
+                        // Set credentials with hostname and port
                         Utils.ConnectionHelper.SetCredentials(
                             loginForm.Username,
                             loginForm.Password,
                             loginForm.IsSysDba,
                             loginForm.ConnectionType,
-                            loginForm.ServiceOrSidValue
+                            loginForm.ServiceOrSidValue,
+                            loginForm.Hostname, // New
+                            loginForm.Port      // New
                         );
 
                         // Show MainForm non-modally
                         using (var mainForm = new MainForm())
                         {
                             mainForm.Show();
-                            // Keep the application running until MainForm is closed
-                            Application.DoEvents(); // Process events to show MainForm
+                            Application.DoEvents();
                             while (mainForm.Visible)
                             {
-                                Application.DoEvents(); // Keep the UI responsive
-                                System.Threading.Thread.Sleep(10); // Prevent CPU overuse
+                                Application.DoEvents();
+                                System.Threading.Thread.Sleep(10);
                             }
                         }
                     }
