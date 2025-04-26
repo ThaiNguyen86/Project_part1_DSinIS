@@ -642,15 +642,14 @@ namespace OracleUserManagementApp.Services
             }
             return privileges;
         }
-
-        public List<string> GetDatabaseObjects()
+        public List<(string Name, string Type)> GetDatabaseObjectsWithType()
         {
-            var objects = new List<string>();
+            var objects = new List<(string Name, string Type)>();
             using (var conn = ConnectionHelper.GetConnection())
             {
                 conn.Open();
                 string sql = @"
-            SELECT object_name
+            SELECT object_name, object_type
             FROM dba_objects 
             WHERE object_type IN ('TABLE', 'VIEW', 'PROCEDURE', 'FUNCTION')
             AND owner NOT IN ('SYS', 'SYSTEM', 'DBSNMP', 'OUTLN', 'APPQOSSYS')
@@ -662,9 +661,10 @@ namespace OracleUserManagementApp.Services
                         while (reader.Read())
                         {
                             string objName = reader["object_name"].ToString().Trim();
+                            string objType = reader["object_type"].ToString().Trim();
                             if (!string.IsNullOrEmpty(objName))
                             {
-                                objects.Add(objName);
+                                objects.Add((objName, objType));
                             }
                         }
                     }
@@ -673,14 +673,41 @@ namespace OracleUserManagementApp.Services
             return objects;
         }
 
+        public List<string> GetDatabaseObjects()
+        {
+            return GetDatabaseObjectsWithType().Select(obj => obj.Name).ToList();
+        }
+
         public List<string> GetColumns(string tableName)
         {
             var columns = new List<string>();
             using (var conn = ConnectionHelper.GetConnection())
             {
                 conn.Open();
+                // Handle views created for column-level SELECT (e.g., EMPLOYEES_VIEW_DEPTNO)
+                string baseTableName = tableName;
+                if (tableName.Contains("_VIEW_"))
+                {
+                    // Extract the base table name (e.g., "EMPLOYEES" from "EMPLOYEES_VIEW_DEPTNO")
+                    int viewIndex = tableName.IndexOf("_VIEW_");
+                    if (viewIndex >= 0)
+                    {
+                        baseTableName = tableName.Substring(0, viewIndex);
+                    }
+                }
+
                 // Get the schema (owner) for the table
-                string owner = GetSchemaForObject(tableName);
+                string owner;
+                try
+                {
+                    owner = GetSchemaForObject(baseTableName);
+                }
+                catch (ArgumentException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to get schema for table {baseTableName}: {ex.Message}");
+                    return columns; // Return empty list if object is not found
+                }
+
                 string sql = @"
             SELECT column_name 
             FROM dba_tab_columns 
@@ -688,7 +715,7 @@ namespace OracleUserManagementApp.Services
             AND owner = :owner";
                 using (var cmd = new OracleCommand(sql, conn))
                 {
-                    cmd.Parameters.Add(new OracleParameter("tableName", tableName));
+                    cmd.Parameters.Add(new OracleParameter("tableName", baseTableName));
                     cmd.Parameters.Add(new OracleParameter("owner", owner));
                     using (var reader = cmd.ExecuteReader())
                     {

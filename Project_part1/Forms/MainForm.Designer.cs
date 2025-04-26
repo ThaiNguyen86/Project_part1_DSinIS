@@ -28,7 +28,7 @@
             this.btnManageUsers.Name = "btnManageUsers";
             this.btnManageUsers.Size = new System.Drawing.Size(467, 89);
             this.btnManageUsers.TabIndex = 0;
-            this.btnManageUsers.Text = "Manage Users & Roles";
+            this.btnManageUsers.Text = "Manage Users and Roles";
             this.btnManageUsers.UseVisualStyleBackColor = true;
             this.btnManageUsers.Click += new System.EventHandler(this.btnManageUsers_Click);
             // 

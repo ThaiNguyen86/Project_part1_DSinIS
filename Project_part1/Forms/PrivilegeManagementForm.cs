@@ -20,34 +20,48 @@ namespace OracleUserManagementApp.Forms
             // Re-attach the event handler for Grantee changes
             cmbGrantee.SelectedIndexChanged += new EventHandler(cmbGrantee_SelectedIndexChanged);
         }
-
+        // Extracts the raw name from a ComboBox item (removes the type in parentheses)
+        private string ExtractRawName(string displayText)
+        {
+            if (string.IsNullOrEmpty(displayText)) return displayText;
+            int index = displayText.IndexOf(" (");
+            return index >= 0 ? displayText.Substring(0, index) : displayText;
+        }
         private void LoadGrantees()
         {
             cmbGrantee.Items.Clear();
             var userRoles = _oracleService.GetUsersAndRoles();
             foreach (var item in userRoles)
             {
-                cmbGrantee.Items.Add(item.Name);
+                // Display the grantee with its type in parentheses, e.g., "TEST_USER1 (USER)"
+                string displayText = $"{item.Name} ({item.Type})";
+                cmbGrantee.Items.Add(displayText);
             }
         }
 
         private void LoadObjects()
         {
             // Preserve the current selection
-            string selectedObject = cmbObject.SelectedItem?.ToString();
+            string selectedObject = ExtractRawName(cmbObject.SelectedItem?.ToString());
 
             cmbObject.Items.Clear();
-            var objects = _oracleService.GetDatabaseObjects();
+            var objects = _oracleService.GetDatabaseObjectsWithType();
             foreach (var obj in objects)
             {
-                cmbObject.Items.Add(obj);
+                // Display the object with its type in parentheses, e.g., "EMPLOYEES (TABLE)"
+                string displayText = $"{obj.Name} ({obj.Type})";
+                cmbObject.Items.Add(displayText);
             }
             cmbObject.Items.Add("N/A");
 
             // Restore the previous selection if it still exists
-            if (!string.IsNullOrEmpty(selectedObject) && cmbObject.Items.Contains(selectedObject))
+            if (!string.IsNullOrEmpty(selectedObject))
             {
-                cmbObject.SelectedItem = selectedObject;
+                var matchingItem = cmbObject.Items.Cast<string>().FirstOrDefault(item => ExtractRawName(item) == selectedObject);
+                if (matchingItem != null)
+                {
+                    cmbObject.SelectedItem = matchingItem;
+                }
             }
         }
 
@@ -121,10 +135,24 @@ namespace OracleUserManagementApp.Forms
                 // Reload columns if an object is selected
                 if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
                 {
+                    string objectName = ExtractRawName(cmbObject.SelectedItem.ToString());
+                    var columns = _oracleService.GetColumns(objectName);
+                    if (columns.Count == 0)
+                    {
+                        // Object might have been dropped or is inaccessible; refresh the object list
+                        MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        LoadObjects();
+                        cmbObject.SelectedItem = "N/A"; // Reset the selection
+                        cmbColumn.Items.Clear();
+                        cmbColumn.SelectedItem = null;
+                        cmbColumn.Text = "";
+                        return;
+                    }
+
+                    // Populate columns if available
                     cmbColumn.Items.Clear();
                     cmbColumn.SelectedItem = null;
-                    cmbColumn.Text = ""; // Explicitly clear the Text property
-                    var columns = _oracleService.GetColumns(cmbObject.SelectedItem.ToString());
+                    cmbColumn.Text = "";
                     foreach (var col in columns)
                     {
                         cmbColumn.Items.Add(col);
@@ -141,7 +169,7 @@ namespace OracleUserManagementApp.Forms
                 cmbObject.SelectedItem = "N/A";
                 cmbColumn.Items.Clear();
                 cmbColumn.SelectedItem = null;
-                cmbColumn.Text = ""; // Explicitly clear the Text property
+                cmbColumn.Text = "";
             }
         }
 
@@ -150,11 +178,22 @@ namespace OracleUserManagementApp.Forms
             // Reset column selection when object changes
             cmbColumn.Items.Clear();
             cmbColumn.SelectedItem = null;
-            cmbColumn.Text = ""; // Explicitly clear the Text property
+            cmbColumn.Text = "";
 
             if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
             {
-                var columns = _oracleService.GetColumns(cmbObject.SelectedItem.ToString());
+                string objectName = ExtractRawName(cmbObject.SelectedItem.ToString());
+                var columns = _oracleService.GetColumns(objectName);
+                if (columns.Count == 0)
+                {
+                    // Object might have been dropped or is inaccessible; refresh the object list
+                    MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    LoadObjects();
+                    cmbObject.SelectedItem = "N/A";
+                    return;
+                }
+
+                // Populate columns if available
                 foreach (var col in columns)
                 {
                     cmbColumn.Items.Add(col);
@@ -173,8 +212,8 @@ namespace OracleUserManagementApp.Forms
                 }
 
                 string privilege = cmbPrivilege.SelectedItem.ToString();
-                string grantee = cmbGrantee.SelectedItem.ToString();
-                string objectName = cmbObject.SelectedItem?.ToString();
+                string grantee = ExtractRawName(cmbGrantee.SelectedItem.ToString());
+                string objectName = ExtractRawName(cmbObject.SelectedItem?.ToString());
                 string columnName = cmbColumn.SelectedItem?.ToString();
                 bool withGrantOption = chkWithGrantOption.Checked;
 
@@ -229,8 +268,8 @@ namespace OracleUserManagementApp.Forms
                 }
 
                 string privilege = cmbPrivilege.SelectedItem.ToString();
-                string grantee = cmbGrantee.SelectedItem.ToString();
-                string objectName = cmbObject.SelectedItem?.ToString();
+                string grantee = ExtractRawName(cmbGrantee.SelectedItem.ToString());
+                string objectName = ExtractRawName(cmbObject.SelectedItem?.ToString());
                 string columnName = cmbColumn.SelectedItem?.ToString();
 
                 // Check if it's an object privilege
@@ -301,7 +340,7 @@ namespace OracleUserManagementApp.Forms
                 }
 
                 string role = cmbRole.SelectedItem.ToString();
-                string user = cmbGrantee.SelectedItem.ToString();
+                string user = ExtractRawName(cmbGrantee.SelectedItem.ToString());
                 _oracleService.GrantRoleToUser(role, user);
                 MessageBox.Show($"Role {role} granted to {user} successfully!");
             }
@@ -322,7 +361,7 @@ namespace OracleUserManagementApp.Forms
                 }
 
                 string role = cmbRole.SelectedItem.ToString();
-                string user = cmbGrantee.SelectedItem.ToString();
+                string user = ExtractRawName(cmbGrantee.SelectedItem.ToString());
                 _oracleService.RevokeRoleFromUser(role, user);
                 MessageBox.Show($"Role {role} revoked from {user} successfully!");
             }

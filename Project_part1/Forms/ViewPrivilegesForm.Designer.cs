@@ -35,7 +35,7 @@
             this.dgvPrivileges.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvPrivileges.Location = new System.Drawing.Point(50, 100);
             this.dgvPrivileges.Name = "dgvPrivileges";
-            this.dgvPrivileges.Size = new System.Drawing.Size(500, 200);
+            this.dgvPrivileges.Size = new System.Drawing.Size(900, 200);
             this.dgvPrivileges.TabIndex = 1;
             this.dgvPrivileges.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvPrivileges.AllowUserToAddRows = false;
@@ -55,12 +55,15 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(600, 350);
+            this.ClientSize = new System.Drawing.Size(1000, 350);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dgvPrivileges);
             this.Controls.Add(this.cmbGrantee);
             this.Name = "ViewPrivilegesForm";
             this.Text = "View Privileges";
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle; // Prevent resizing
+            this.MaximizeBox = false; // Disable maximize
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             ((System.ComponentModel.ISupportInitialize)(this.dgvPrivileges)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
