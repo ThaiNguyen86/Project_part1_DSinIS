@@ -709,10 +709,10 @@ namespace OracleUserManagementApp.Services
                 }
 
                 string sql = @"
-            SELECT column_name 
-            FROM dba_tab_columns 
-            WHERE table_name = :tableName
-            AND owner = :owner";
+                SELECT column_name 
+                FROM dba_tab_columns 
+                WHERE table_name = :tableName
+                AND owner = :owner";
                 using (var cmd = new OracleCommand(sql, conn))
                 {
                     cmd.Parameters.Add(new OracleParameter("tableName", baseTableName));

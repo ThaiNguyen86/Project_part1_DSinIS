@@ -27,6 +27,18 @@ namespace OracleUserManagementApp.Forms
             int index = displayText.IndexOf(" (");
             return index >= 0 ? displayText.Substring(0, index) : displayText;
         }
+
+        private string ExtractObjectType(string displayText)
+        {
+            if (string.IsNullOrEmpty(displayText)) return string.Empty;
+            int startIndex = displayText.IndexOf("(");
+            int endIndex = displayText.IndexOf(")");
+            if (startIndex >= 0 && endIndex > startIndex)
+            {
+                return displayText.Substring(startIndex + 1, endIndex - startIndex - 1);
+            }
+            return string.Empty;
+        }
         private void LoadGrantees()
         {
             cmbGrantee.Items.Clear();
@@ -129,34 +141,56 @@ namespace OracleUserManagementApp.Forms
             {
                 // Enable controls for object privileges and preserve current object selection
                 cmbObject.Enabled = true;
-                cmbColumn.Enabled = true;
                 chkWithGrantOption.Enabled = true;
 
-                // Reload columns if an object is selected
+                // Check if an object is selected and handle column loading based on object type
                 if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
                 {
                     string objectName = ExtractRawName(cmbObject.SelectedItem.ToString());
-                    var columns = _oracleService.GetColumns(objectName);
-                    if (columns.Count == 0)
+                    string objectType = ExtractObjectType(cmbObject.SelectedItem.ToString());
+
+                    // Only load columns for tables and views
+                    if (objectType == "TABLE" || objectType == "VIEW")
                     {
-                        // Object might have been dropped or is inaccessible; refresh the object list
-                        MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        LoadObjects();
-                        cmbObject.SelectedItem = "N/A"; // Reset the selection
+                        var columns = _oracleService.GetColumns(objectName);
+                        if (columns.Count == 0)
+                        {
+                            // Object might have been dropped or is inaccessible; refresh the object list
+                            MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            LoadObjects();
+                            cmbObject.SelectedItem = "N/A";
+                            cmbColumn.Items.Clear();
+                            cmbColumn.SelectedItem = null;
+                            cmbColumn.Text = "";
+                            return;
+                        }
+
+                        // Populate columns if available
                         cmbColumn.Items.Clear();
                         cmbColumn.SelectedItem = null;
                         cmbColumn.Text = "";
-                        return;
+                        foreach (var col in columns)
+                        {
+                            cmbColumn.Items.Add(col);
+                        }
+                        cmbColumn.Enabled = true; // Enable column selection for tables and views
                     }
-
-                    // Populate columns if available
+                    else
+                    {
+                        // For procedures and functions, disable column selection
+                        cmbColumn.Items.Clear();
+                        cmbColumn.SelectedItem = null;
+                        cmbColumn.Text = "";
+                        cmbColumn.Enabled = false;
+                    }
+                }
+                else
+                {
+                    // No object selected; disable column selection
                     cmbColumn.Items.Clear();
                     cmbColumn.SelectedItem = null;
                     cmbColumn.Text = "";
-                    foreach (var col in columns)
-                    {
-                        cmbColumn.Items.Add(col);
-                    }
+                    cmbColumn.Enabled = false;
                 }
             }
             else
@@ -183,21 +217,38 @@ namespace OracleUserManagementApp.Forms
             if (cmbObject.SelectedItem != null && cmbObject.SelectedItem.ToString() != "N/A")
             {
                 string objectName = ExtractRawName(cmbObject.SelectedItem.ToString());
-                var columns = _oracleService.GetColumns(objectName);
-                if (columns.Count == 0)
-                {
-                    // Object might have been dropped or is inaccessible; refresh the object list
-                    MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    LoadObjects();
-                    cmbObject.SelectedItem = "N/A";
-                    return;
-                }
+                string objectType = ExtractObjectType(cmbObject.SelectedItem.ToString());
 
-                // Populate columns if available
-                foreach (var col in columns)
+                // Only load columns for tables and views
+                if (objectType == "TABLE" || objectType == "VIEW")
                 {
-                    cmbColumn.Items.Add(col);
+                    var columns = _oracleService.GetColumns(objectName);
+                    if (columns.Count == 0)
+                    {
+                        // Object might have been dropped or is inaccessible; refresh the object list
+                        MessageBox.Show($"The object '{objectName}' is no longer accessible. Refreshing the object list.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        LoadObjects();
+                        cmbObject.SelectedItem = "N/A";
+                        return;
+                    }
+
+                    // Populate columns if available
+                    foreach (var col in columns)
+                    {
+                        cmbColumn.Items.Add(col);
+                    }
+                    cmbColumn.Enabled = true; // Enable column selection for tables and views
                 }
+                else
+                {
+                    // For procedures and functions, disable column selection
+                    cmbColumn.Enabled = false;
+                }
+            }
+            else
+            {
+                // No object selected; disable column selection
+                cmbColumn.Enabled = false;
             }
         }
 
@@ -228,9 +279,26 @@ namespace OracleUserManagementApp.Forms
                         MessageBox.Show("Please select a valid database object for this privilege.");
                         return;
                     }
-                    if (!string.IsNullOrEmpty(columnName) && privilege != "SELECT" && privilege != "UPDATE")
+
+                    string objectType = ExtractObjectType(cmbObject.SelectedItem.ToString());
+                    if (!string.IsNullOrEmpty(columnName))
                     {
-                        MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
+                        if (privilege != "SELECT" && privilege != "UPDATE")
+                        {
+                            MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
+                            return;
+                        }
+                        if (objectType != "TABLE" && objectType != "VIEW")
+                        {
+                            MessageBox.Show("Column-level privileges are only supported for tables and views, not for procedures or functions.");
+                            return;
+                        }
+                    }
+
+                    // Additional validation for EXECUTE privilege
+                    if (privilege == "EXECUTE" && objectType != "PROCEDURE" && objectType != "FUNCTION")
+                    {
+                        MessageBox.Show("The EXECUTE privilege can only be granted on procedures or functions.");
                         return;
                     }
                 }
@@ -283,11 +351,29 @@ namespace OracleUserManagementApp.Forms
                         MessageBox.Show("Please select a valid database object for this privilege.");
                         return;
                     }
-                    if (!string.IsNullOrEmpty(columnName) && privilege != "SELECT" && privilege != "UPDATE")
+
+                    string objectType = ExtractObjectType(cmbObject.SelectedItem.ToString());
+                    if (!string.IsNullOrEmpty(columnName))
                     {
-                        MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
+                        if (privilege != "SELECT" && privilege != "UPDATE")
+                        {
+                            MessageBox.Show("Column-level privileges are only supported for SELECT and UPDATE.");
+                            return;
+                        }
+                        if (objectType != "TABLE" && objectType != "VIEW")
+                        {
+                            MessageBox.Show("Column-level privileges are only supported for tables and views, not for procedures or functions.");
+                            return;
+                        }
+                    }
+
+                    // Additional validation for EXECUTE privilege
+                    if (privilege == "EXECUTE" && objectType != "PROCEDURE" && objectType != "FUNCTION")
+                    {
+                        MessageBox.Show("The EXECUTE privilege can only be revoked from procedures or functions.");
                         return;
                     }
+
                     // Warn user if revoking UPDATE with a column selected
                     if (privilege == "UPDATE" && !string.IsNullOrEmpty(columnName))
                     {
@@ -301,6 +387,7 @@ namespace OracleUserManagementApp.Forms
                             return;
                         }
                     }
+
                     // Optional: Warn user if revoking SELECT with a column and selecting a view
                     if (privilege == "SELECT" && !string.IsNullOrEmpty(columnName) && objectName.EndsWith($"_VIEW_{columnName}", StringComparison.OrdinalIgnoreCase))
                     {
